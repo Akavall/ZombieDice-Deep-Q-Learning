@@ -85,10 +85,6 @@ if __name__ == "__main__":
 
             agent.replay_memory()
 
-        if done and type(new_state) != int:
-            import ipdb 
-            ipdb.set_trace()
-
         scores.append(new_state)
         print(f"score last 100 avg: {np.mean(scores)}")
 
