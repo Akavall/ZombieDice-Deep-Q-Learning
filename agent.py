@@ -70,10 +70,10 @@ class Agent(object):
             # and we update action part later
             # https://keon.io/deep-q-learning/
 
-            target_q = self.model.predict(state)
+            action_scores = self.model.predict(state)
 
             if done:
-                target_q[0][action] = reward
+                action_scores[0][action] = reward
             else:
 
                 # What would happen if we used self.model here?
@@ -87,19 +87,23 @@ class Agent(object):
                 # been trained on biased results, and things are more stable
                 if isinstance(new_state, int):
                     # this happens player chose to end the turn
-                    new_q = new_state
+                    new_action_score = new_state
                 else:
                     temp = self.target_model.predict(new_state)
                     # temp = self.model.predict(new_state) # experimental line
                     # I tested this, and it is much, much worse. Basically does not work.
-                    new_q = np.max(temp)
+                    new_action_score = np.max(temp)
 
                 # This is just ignoring learning rate; learning rate is 1
                 # target_q[0][action] = (reward + self.discount_rate * new_q)
 
-                target_q[0][action] = reward + self.discount_rate * new_q
+                action_scores[0][action] = reward + self.discount_rate * new_action_score
 
-            self.model.fit(state, target_q, verbose=0)
+            # Since the model given the state, gives back action scores
+            # We train it the same way, we give it state, and 
+            # modified actions scores to what it returned                 
+
+            self.model.fit(state, action_scores, verbose=0)
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
