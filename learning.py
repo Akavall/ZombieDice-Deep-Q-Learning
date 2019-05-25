@@ -41,15 +41,11 @@ def get_features(player, game_state):
     return state, reward, s.is_dead
 
 
-if __name__ == "__main__":
+def learn(agent, session, n_episodes, maxlen_scores):
 
-    sess = tf.Session()
-    K.set_session(sess)
+    K.set_session(session)
 
-    agent = Agent(7, 2)
-    n_episodes = 100
-
-    scores = deque(maxlen=100)
+    scores = deque(maxlen=maxlen_scores)
 
     for e in range(n_episodes):
 
@@ -93,7 +89,23 @@ if __name__ == "__main__":
 
 
     # We need this to load model to golang
-    builder = tf.saved_model.builder.SavedModelBuilder("golang_model")
-    builder.add_meta_graph_and_variables(sess, ["tags"])
-    builder.save(as_text=False)
-    sess.close()
+
+
+if __name__ == "__main__":
+     
+    with tf.Session() as sess:
+
+        sess.run(tf.global_variables_initializer())
+
+        agent = Agent(state_size=7,
+                      action_size=2,
+                      model_shape=[24, 24]
+                      )
+        learn(agent=agent, session=sess, n_episodes=200, maxlen_scores=100)
+
+        agent.model.save("exprimental_model.h5")
+
+        builder = tf.saved_model.builder.SavedModelBuilder("golang_model")
+        builder.add_meta_graph_and_variables(sess, ["tags"])
+        builder.save(as_text=False)
+        sess.close()

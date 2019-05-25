@@ -13,32 +13,43 @@ import numpy as np
 
 class Agent(object):
 
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size,
+                       action_size,
+                       model_shape,
+                       learning_rate=0.001,
+                       memories_capacity=1000,
+                       batch_size=32,
+                       exploration_decay=0.98,
+                       discount_rate=0.95,
+                       epsilon=0.5,
+                       epsilon_min=0.01,
+                       epsilon_decay=0.99
+                       ):
         self.state_size = state_size
         self.action_size = action_size
-        self.learning_rate = 0.001
-        self.model = self.build_model()
-        self.target_model = self.build_model()
-        self.memories_capacity = 1000
+        self.learning_rate = learning_rate
+        self.model = self.build_model(model_shape)
+        self.target_model = self.build_model(model_shape)
+        self.memories_capacity = memories_capacity
         self.memories = deque([], self.memories_capacity)
-        self.batch_size = 32
-        self.exploration_decay = 0.98
-        self.discount_rate = 0.95
-        self.epsilon = 0.5
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.99
+        self.batch_size = batch_size
+        self.exploration_decay = exploration_decay
+        self.discount_rate = discount_rate
+        self.epsilon = epsilon
+        self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
         self.update_policy_weights()
 
-    def build_model(self):
+    def build_model(self, layer_sizes):
 
         model = Sequential()
         model.add( Dense(24, input_dim=self.state_size, activation="relu"))
 
         # kernel_regularizer=regularizers.l2(0.05) if we ever need a regularization
-        model.add( Dense(24, activation="relu"))
-        model.add( Dense(24, activation="relu"))
-        # model.add( Dense(24, activation="relu"))
-        # model.add( Dense(24, activation="relu"))
+        for layer_size in layer_sizes:
+            model.add( Dense(layer_size, activation="relu"))
+
+
         model.add( Dense(self.action_size, activation="linear", name="my_output"))
 
         model.compile(loss="mse", optimizer=Adam(lr=self.learning_rate))
@@ -52,6 +63,7 @@ class Agent(object):
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             return rn.randrange(self.action_size)
+        
         act_values = self.model.predict(state)
         return np.argmax(act_values[0]) # returns action 
 
