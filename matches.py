@@ -46,13 +46,13 @@ def one_match(ai_a, ai_b):
 
     while game_state.game_over is False:
 
-        while(ai_a.should_continue(player_a, game_state)):
+        while(ai_a.should_continue(player_a, game_state) and not player_a.player_state.is_dead):
             player_a.take_turn(game_state.zombie_deck)
 
         game_state.end_turn()
         player_a.player_state.reset()
 
-        while(ai_b.should_continue(player_b, game_state)):
+        while(ai_b.should_continue(player_b, game_state) and not player_b.player_state.is_dead):
             player_b.take_turn(game_state.zombie_deck)
 
         game_state.end_turn()
@@ -72,8 +72,8 @@ if __name__ == "__main__":
 
     
     # best model
-    # rl_simple_ai_a = RL_Simple("my_model_1000_4_layer.h5")
-    rl_simple_ai_b = RL_Simple("my_model_1000_4_layer.h5")
+    rl_simple_ai_b = RL_Simple("new_best_model.h5")
+    # rl_simple_ai_b = RL_Simple("exprimental_model_method_1_model_4.h5")
 
     # it looks like 1000 is slightly better than 5000
 
