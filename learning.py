@@ -65,11 +65,13 @@ def learn(agent, session, n_episodes, maxlen_scores):
             if action == 0:
                 done = True
                 new_state = player_a.player_state.brains_rolled
+                reward = new_state
             else:
                 player_a.take_turn(game_state.zombie_deck)
                 new_state, reward, done = get_features(player_a, game_state)
+                reward = 0
                 if done:
-                    new_state = reward
+                    new_state = reward # reward is 0 here
                 else:
                     new_state = np.expand_dims(new_state, axis=0)
 
