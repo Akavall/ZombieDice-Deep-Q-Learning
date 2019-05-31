@@ -21,9 +21,9 @@ class Agent(object):
                        batch_size=32,
                        exploration_decay=0.98,
                        discount_rate=0.95,
-                       epsilon=0.5,
+                       epsilon=1,
                        epsilon_min=0.01,
-                       epsilon_decay=0.99
+                       epsilon_decay=0.995
                        ):
         self.state_size = state_size
         self.action_size = action_size
@@ -43,11 +43,15 @@ class Agent(object):
     def build_model(self, layer_sizes):
 
         model = Sequential()
-        model.add( Dense(24, input_dim=self.state_size, activation="relu"))
+        model.add( Dense(layer_sizes[0], input_dim=self.state_size, activation="relu",kernel_regularizer=regularizers.l2(0.01)))
 
         # kernel_regularizer=regularizers.l2(0.05) if we ever need a regularization
-        for layer_size in layer_sizes:
-            model.add( Dense(layer_size, activation="relu"))
+        for layer_size in layer_sizes[1:]:
+            model.add( Dense(layer_size,
+                             activation="relu",
+                             kernel_regularizer=regularizers.l2(0.01)))
+
+
 
 
         model.add( Dense(self.action_size, activation="linear", name="my_output"))
@@ -76,7 +80,7 @@ class Agent(object):
         sample_memories = rn.sample(self.memories, self.batch_size)
 
         for state, action, reward, new_state, done in sample_memories:
-            
+
             # Why is this just state? Not state and Action?
             # At this point we get entire action_space
             # and we update action part later
@@ -115,7 +119,8 @@ class Agent(object):
             # We train it the same way, we give it state, and 
             # modified actions scores to what it returned                 
 
-            self.model.fit(state, action_scores, verbose=0)
+            self.model.fit(state, action_scores, verbose=0) #verbose=0 for no logs
+
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay

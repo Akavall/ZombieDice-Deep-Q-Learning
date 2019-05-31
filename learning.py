@@ -107,11 +107,11 @@ if __name__ == "__main__":
                     action_size=2,
                     model_shape=[24, 24, 24]
                     )
-        learn(agent=agent, session=sess, n_episodes=500, maxlen_scores=100)
+        learn(agent=agent, session=sess, n_episodes=1000, maxlen_scores=100)
 
         agent.model.save(f"experimental_model.h5")
 
-        # builder = tf.saved_model.builder.SavedModelBuilder("golang_model")
-        # builder.add_meta_graph_and_variables(sess, ["tags"])
-        # builder.save(as_text=False)
-        # sess.close()
+        builder = tf.saved_model.builder.SavedModelBuilder("forGo4")
+        builder.add_meta_graph_and_variables(sess, ["tags"])
+        builder.save(as_text=False)
+        sess.close()

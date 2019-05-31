@@ -69,6 +69,7 @@ if __name__ == "__main__":
     greedy_ai = Greedy()
     rl_simple_ai_a = RL_Simple("experimental_model.h5")
     # rl_simple_ai_b = RL_Simple("my_model_1000_4_layer_eps_06_4.h5")
+    # rl_simple_ai_a = RL_Simple("experimental_model_method_0_model4.h5")
 
     
     # best model

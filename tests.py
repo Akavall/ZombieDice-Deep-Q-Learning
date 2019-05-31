@@ -97,8 +97,8 @@ def test_model(model, verbose=False):
         else:
             print("passed test 6")
 
-    score += result
-
+    score += result   
+    
     state = [0,2,0,1,4,4,3]
 
     result = test_prediction(model, state, True)
@@ -170,6 +170,35 @@ def test_model(model, verbose=False):
             print("passed test 12")
 
     score += result
+
+
+    state = [7,0,7,3,6,0,0]
+
+    result = test_prediction(model, state, True)
+
+    if verbose:
+        if not result:
+            print("missed test 13")
+        else:
+            print("passed test 13")
+
+    score += result  
+
+    state = [6,0,6,3,4,2,0]
+
+    result = test_prediction(model, state, True)
+
+    if verbose:
+        if not result:
+            print("missed test 14")
+        else:
+            print("passed test 14")
+
+    score += result  
+
+
+
+
 
     return score
 
