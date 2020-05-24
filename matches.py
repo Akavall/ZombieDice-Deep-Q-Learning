@@ -4,6 +4,9 @@ import random as rn
 from keras.models import load_model
 import numpy as np
 
+import torch
+from pytorch_agent import RNNRegressor
+
 from zombie_dice import Player, init_game_state, init_player_state
 from learning import get_features
 
@@ -33,6 +36,27 @@ class RL_Simple:
         state, _, _ = get_features(player, game_state)
 
         prediction = self.model.predict(np.expand_dims(state, axis=0))
+
+        return np.argmax(prediction[0])
+
+class RL_PyTorch:
+
+    def __init__(self, model_path):
+        # how do you load and save a model in pytorch?
+        # self.model = load_model(model_path)
+        self.model = RNNRegressor(7, 2)
+        self.model.load_state_dict(torch.load("pytorch_model.pt"))
+        self.model.eval()
+
+
+    def should_continue(self, player=None, game_state=None):
+
+        state, _, _ = get_features(player, game_state)
+
+        with torch.no_grad():
+            state_torch = torch.from_numpy(np.expand_dims(state, axis=0)).float()
+            prediction = self.model(state_torch)
+            return prediction.argmax()
 
         return np.argmax(prediction[0])
 
@@ -67,20 +91,22 @@ if __name__ == "__main__":
 
     random_ai = RandomAI()
     greedy_ai = Greedy()
-    rl_simple_ai_a = RL_Simple("experimental_model.h5")
+    # rl_simple_ai_a = RL_Simple("experimental_model.h5")
     # rl_simple_ai_b = RL_Simple("my_model_1000_4_layer_eps_06_4.h5")
     # rl_simple_ai_a = RL_Simple("experimental_model_method_0_model4.h5")
 
     
     # best model
-    rl_simple_ai_b = RL_Simple("new_best_model.h5")
+    # rl_simple_ai_b = RL_Simple("new_best_model.h5")
     # rl_simple_ai_b = RL_Simple("exprimental_model_method_1_model_4.h5")
 
     # it looks like 1000 is slightly better than 5000
 
-    n_matches = 1000
+    pytorch_agent = RL_PyTorch("pytorch_model")
 
-    match_result = [one_match(rl_simple_ai_a, rl_simple_ai_b) for _ in range(n_matches)]
+    n_matches = 100
+
+    match_result = [one_match(greedy_ai, pytorch_agent) for _ in range(n_matches)]
 
     print(f"match stats: {Counter(match_result)}")
 

@@ -13,26 +13,26 @@ class RNNRegressor(nn.Module):
     def __init__(self, input_size, action_size):
         super(RNNRegressor, self).__init__()
 
-        self.fc1 = nn.Linear(input_size, 32)
-        self.fc2 = nn.Linear(32, 32)
-        self.fc3 = nn.Linear(32, action_size)
+        self.fc1 = nn.Linear(input_size, 24)
+        self.fc2 = nn.Linear(24, 24)
+        self.fc3 = nn.Linear(24, 24)
+        self.fc4 = nn.Linear(24, action_size)
 
     def forward(self, input):
 
-
-
         fc_1_output = F.relu(self.fc1(input))
         fc_2_output = F.relu(self.fc2(fc_1_output))
-        fc_3_output = self.fc3(fc_2_output)
+        fc_3_output = F.relu(self.fc3(fc_2_output))
+        fc_4_output = self.fc4(fc_3_output)
 
-        return fc_3_output
+        return fc_4_output
 
 class PyTorchAgent:
 
     def __init__(self, 
                  input_size, 
                  action_size, 
-                 batch_size=32,
+                 batch_size=200,
                  memories_capacity=1000):
         self.input_size = input_size
         self.action_size = action_size 
@@ -66,6 +66,9 @@ class PyTorchAgent:
 
         sample_memories = rn.sample(self.memories, self.batch_size)
 
+        # optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        # criterion = nn.MSELoss()
+
         for state, action, reward, new_state, done in sample_memories:
 
             self.optimizer.zero_grad()
@@ -74,8 +77,7 @@ class PyTorchAgent:
             new_state_pytorch = torch.from_numpy(state).float()
             
             action_scores = self.model(state_pytorch)
-            action_scores_original = action_scores
-            # check on dimensions
+            action_scores_original = action_scores.clone().detach()
 
             if done:
                 action_scores[0][action] = reward
@@ -89,13 +91,17 @@ class PyTorchAgent:
                 action_scores[0][action] = reward + self.discount_rate * new_action_score
 
             loss = self.criterion(action_scores_original, action_scores)
+            loss.backward()
             self.optimizer.step()
+
+            # model weights are not being updated :(
+            # gradient seems to be zero
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
     def update_policy_weights(self):
-    
+
         with torch.no_grad():
             self.target_model.fc1.weight = self.model.fc1.weight 
             self.target_model.fc2.weight = self.model.fc2.weight 

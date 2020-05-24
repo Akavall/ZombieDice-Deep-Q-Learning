@@ -1,5 +1,6 @@
 
 import numpy as np
+import torch
 
 from zombie_dice import Player, init_player_state, init_game_state
 from pytorch_agent import PyTorchAgent
@@ -96,6 +97,9 @@ if __name__ == "__main__":
 
     pytorch_agent = PyTorchAgent(input_size=7, action_size=2)
 
-    learn(agent=pytorch_agent, n_episodes=1000, maxlen_scores=100)
+    learn(agent=pytorch_agent, n_episodes=500, maxlen_scores=100)
+
+    torch.save(pytorch_agent.model.state_dict(), "pytorch_model.pt")
+
 
     # might want to save the model 
