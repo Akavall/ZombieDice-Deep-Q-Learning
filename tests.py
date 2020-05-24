@@ -1,9 +1,10 @@
 
 from keras.models import load_model
+import torch
 import numpy as np
 
 
-def test_prediction(model, state, expected_move):
+def test_prediction(model, state, expected_move, pytorch=False):
 
     # state = [
     # current_score,
@@ -15,21 +16,26 @@ def test_prediction(model, state, expected_move):
     # red
     #        ]
 
-    prediction = model.predict(np.expand_dims(state, axis=0))
-
-    should_move = np.argmax(prediction[0])
+    if not pytorch:
+        prediction = model.predict(np.expand_dims(state, axis=0))
+        should_move = np.argmax(prediction[0])
+    else:
+        state_torch = torch.from_numpy(np.expand_dims(state, axis=0)).float() 
+        prediction = model(state_torch)
+        should_move = prediction.argmax()
 
     return expected_move == should_move
 
 
 
-def test_model(model, verbose=False):
+def test_model(model, pytorch=False, verbose=False):
 
     score = 0
 
     state = [0,0,0,0,6,4,3]
 
-    result = test_prediction(model, state, True)
+    result = test_prediction(model, state, True, pytorch)
+
 
     if verbose:
         if not result:
@@ -41,7 +47,7 @@ def test_model(model, verbose=False):
 
     state = [4,2,4,0,0,4,3]
 
-    result = test_prediction(model, state, False)
+    result = test_prediction(model, state, False, pytorch)
 
     if verbose:
         if not result:
@@ -53,7 +59,7 @@ def test_model(model, verbose=False):
 
     state = [7,2,4,0,0,1,3]
 
-    result = test_prediction(model, state, False)
+    result = test_prediction(model, state, False, pytorch)
 
     if verbose:
         if not result:
@@ -65,7 +71,7 @@ def test_model(model, verbose=False):
 
     state = [2,0,2,1,6,4,1]
 
-    result = test_prediction(model, state, True)
+    result = test_prediction(model, state, True, pytorch)
 
     if verbose:
         if not result:
@@ -77,7 +83,7 @@ def test_model(model, verbose=False):
 
     state = [4,0,4,2,6,2,1]
 
-    result = test_prediction(model, state, True)
+    result = test_prediction(model, state, True, pytorch)
 
     if verbose:
         if not result:
@@ -89,7 +95,7 @@ def test_model(model, verbose=False):
 
     state = [6,0,6,3,6,1,0]
 
-    result = test_prediction(model, state, True)
+    result = test_prediction(model, state, True, pytorch)
 
     if verbose:
         if not result:
@@ -101,7 +107,7 @@ def test_model(model, verbose=False):
     
     state = [0,2,0,1,4,4,3]
 
-    result = test_prediction(model, state, True)
+    result = test_prediction(model, state, True, pytorch)
 
     if verbose:
         if not result:
@@ -113,7 +119,7 @@ def test_model(model, verbose=False):
 
     state = [2,2,2,2,0,4,3]
 
-    result = test_prediction(model, state, False)
+    result = test_prediction(model, state, False, pytorch)
 
     if verbose:
         if not result:
@@ -125,7 +131,7 @@ def test_model(model, verbose=False):
 
     state = [6,1,6,2,0,3,3]
 
-    result = test_prediction(model, state, False)
+    result = test_prediction(model, state, False, pytorch)
 
     if verbose:
         if not result:
@@ -137,7 +143,7 @@ def test_model(model, verbose=False):
 
     state = [5,1,5,3,0,4,3]
 
-    result = test_prediction(model, state, False)
+    result = test_prediction(model, state, False, pytorch)
 
     if verbose:
         if not result:
@@ -149,7 +155,7 @@ def test_model(model, verbose=False):
 
     state = [1,1,1,1,3,4,3]
 
-    result = test_prediction(model, state, True)
+    result = test_prediction(model, state, True, pytorch)
 
     if verbose:
         if not result:
@@ -161,7 +167,7 @@ def test_model(model, verbose=False):
 
     state = [1,2,1,0,3,4,3]
 
-    result = test_prediction(model, state, False)
+    result = test_prediction(model, state, False, pytorch)
 
     if verbose:
         if not result:
@@ -174,7 +180,7 @@ def test_model(model, verbose=False):
 
     state = [7,0,7,3,6,0,0]
 
-    result = test_prediction(model, state, True)
+    result = test_prediction(model, state, True, pytorch)
 
     if verbose:
         if not result:
@@ -186,7 +192,7 @@ def test_model(model, verbose=False):
 
     state = [6,0,6,3,4,2,0]
 
-    result = test_prediction(model, state, True)
+    result = test_prediction(model, state, True, pytorch)
 
     if verbose:
         if not result:

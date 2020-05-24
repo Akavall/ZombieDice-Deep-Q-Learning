@@ -8,7 +8,7 @@ import tensorflow as tf
 
 from collections import deque
 
-from tests import test_model
+# from tests import test_model
 
 
 def get_features(player, game_state):
@@ -88,8 +88,8 @@ def learn(agent, session, n_episodes, maxlen_scores):
         scores.append(new_state)
         print(f"score last 100 avg: {np.mean(scores)}, current_score: {new_state}")
 
-        model_score = test_model(agent.model)
-        print(f"model_score: {model_score}")
+        # model_score = test_model(agent.model)
+        # print(f"model_score: {model_score}")
 
     # We need this for testing
 

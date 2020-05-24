@@ -84,8 +84,8 @@ def learn(agent, n_episodes, maxlen_scores):
         scores.append(new_state)
         print(f"score last 100 avg: {np.mean(scores)}, current_score: {new_state}")
 
-        # model_score = test_model(agent.model)
-        # print(f"model_score: {model_score}")
+        model_score = test_model(agent.model, pytorch=True)
+        print(f"model_score: {model_score}")
 
     # We need this for testing
 
