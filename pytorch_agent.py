@@ -32,7 +32,7 @@ class PyTorchAgent:
     def __init__(self, 
                  input_size, 
                  action_size, 
-                 batch_size=200,
+                 batch_size=32,
                  memories_capacity=1000):
         self.input_size = input_size
         self.action_size = action_size 
@@ -59,7 +59,7 @@ class PyTorchAgent:
 
         return act_values.argmax()
 
-    def replay_memory(self):
+    def replay_memory(self, episode):
 
         if len(self.memories) < self.batch_size:
             return 
@@ -74,25 +74,36 @@ class PyTorchAgent:
             self.optimizer.zero_grad()
 
             state_pytorch = torch.from_numpy(state).float()
-            new_state_pytorch = torch.from_numpy(state).float()
-            
             action_scores = self.model(state_pytorch)
-            action_scores_original = action_scores.clone().detach()
+            action_scores_original = action_scores.clone() # do not detach!
 
             if done:
                 action_scores[0][action] = reward
+
             else:
                 if isinstance(new_state, int):
                     new_action_score = new_state
                 else:
+                    new_state_pytorch = torch.from_numpy(new_state).float()
                     temp = self.target_model(new_state_pytorch)
+                    # when temp came from target model, the weights were never updated..
                     new_action_score = temp.max()
 
+                # it looks like reward + ... would double count reward
+                # but reward id zero in this case, so it doesn't matter 
                 action_scores[0][action] = reward + self.discount_rate * new_action_score
+                # action_scores[0][action] = self.discount_rate * new_action_score
 
             loss = self.criterion(action_scores_original, action_scores)
             loss.backward()
             self.optimizer.step()
+
+            print(f"action: {action}")
+            print(f"action_scores: {action_scores}, action_scores_original: {action_scores_original}")
+            print("fc1 grad abs sum: {}".format(self.model.fc1.weight.grad.abs().sum()))
+            print("fc2 grad abs sum: {}".format(self.model.fc2.weight.grad.abs().sum()))
+            print("fc3 grad abs sum: {}".format(self.model.fc3.weight.grad.abs().sum()))
+            print("fc4 grad abs sum: {}".format(self.model.fc4.weight.grad.abs().sum()))
 
             # model weights are not being updated :(
             # gradient seems to be zero
@@ -103,8 +114,25 @@ class PyTorchAgent:
     def update_policy_weights(self):
 
         with torch.no_grad():
-            self.target_model.fc1.weight = self.model.fc1.weight 
-            self.target_model.fc2.weight = self.model.fc2.weight 
+            self.target_model.load_state_dict(self.model.state_dict())
+
+        # import ipdb 
+        # ipdb.set_trace()
+
+        # with torch.no_grad():
+        #     # every time model
+        #     self.target_model.fc1.weight = self.model.fc1.weight
+        #     self.target_model.fc2.weight = self.model.fc2.weight
+        #     self.target_model.fc3.weight = self.model.fc3.weight
+        #     self.target_model.fc4.weight = self.model.fc4.weight
+
+        # import ipdb 
+        # ipdb.set_trace()
+
+        # self.target_model.fc1.weight = self.model.fc1.weight 
+        # self.target_model.fc2.weight = self.model.fc2.weight 
+        # self.target_model.fc3.weight = self.model.fc3.weight 
+        # self.target_model.fc4.weight = self.model.fc4.weight
 
 
 

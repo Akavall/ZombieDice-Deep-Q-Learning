@@ -7,7 +7,7 @@ from pytorch_agent import PyTorchAgent
 
 from collections import deque
 
-from tests import test_model
+# from tests import test_model
 
 
 def get_features(player, game_state):
@@ -80,16 +80,19 @@ def learn(agent, n_episodes, maxlen_scores):
                 agent.update_policy_weights()
                 break
 
-            agent.replay_memory()
+            agent.replay_memory(e)
 
         scores.append(new_state)
         print(f"score last 100 avg: {np.mean(scores)}, current_score: {new_state}")
 
-        model_score = test_model(agent.model, pytorch=True)
-        print(f"model_score: {model_score}")
+        # model_score = test_model(agent.model, pytorch=True)
+        # print(f"model_score: {model_score}")
+
+        # if e > 32:
+        #     import ipdb 
+        #     ipdb.set_trace()
 
     # We need this for testing
-
     # We need this to load model to golang
 
 
