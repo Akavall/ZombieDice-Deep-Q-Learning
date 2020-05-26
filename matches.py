@@ -42,8 +42,6 @@ class RL_Simple:
 class RL_PyTorch:
 
     def __init__(self, model_path):
-        # how do you load and save a model in pytorch?
-        # self.model = load_model(model_path)
         self.model = RNNRegressor(7, 2)
         self.model.load_state_dict(torch.load("pytorch_model.pt"))
         self.model.eval()
@@ -53,12 +51,10 @@ class RL_PyTorch:
 
         state, _, _ = get_features(player, game_state)
 
-        with torch.no_grad():
-            state_torch = torch.from_numpy(np.expand_dims(state, axis=0)).float()
-            prediction = self.model(state_torch)
-            return prediction.argmax()
+        state_torch = torch.from_numpy(np.expand_dims(state, axis=0)).float()
+        prediction = self.model(state_torch)
+        return prediction.argmax()
 
-        return np.argmax(prediction[0])
 
 
 
@@ -103,10 +99,11 @@ if __name__ == "__main__":
     # it looks like 1000 is slightly better than 5000
 
     pytorch_agent = RL_PyTorch("pytorch_model")
+    keras_agent = RL_Simple("experimental_model.h5")
 
-    n_matches = 100
+    n_matches = 1000
 
-    match_result = [one_match(greedy_ai, pytorch_agent) for _ in range(n_matches)]
+    match_result = [one_match(keras_agent, pytorch_agent) for _ in range(n_matches)]
 
     print(f"match stats: {Counter(match_result)}")
 

@@ -22,9 +22,10 @@ def test_prediction(model, state, expected_move, pytorch=False):
     else:
 
         state_torch = torch.from_numpy(np.expand_dims(state, axis=0)).float() 
-        with torch.no_grad():
-            prediction = model(state_torch)
-            should_move = prediction.argmax()
+
+        model.eval()
+        prediction = model(state_torch)
+        should_move = prediction.argmax()
 
     return expected_move == should_move
 
