@@ -57,20 +57,25 @@ class Player:
         self.id = id
         self.is_ai = is_ai
         self.total_score = total_score
+        self.walks = []
 
     def take_turn(self, deck):
         # deck will be modified in place
 
         turn_result = []
 
-        if len(deck.dices) < 3:
+        if len(deck.dices) + len(self.walks) < 3:
             new_deck = init_zombie_deck()
             new_deck.shuffle()
             deck.prepend(new_deck)
 
-        dices_to_roll = deck.deal_dice(3)
+        dices_to_roll = self.walks + deck.deal_dice(3 - len(self.walks))
 
-        self.player_state.walks_taken_last_roll = 0
+        self.walks = []
+
+        self.player_state.n_green_walks = 0
+        self.player_state.n_yellow_walks = 0
+        self.player_state.n_red_walks = 0
 
         for roll_ind, d in enumerate(dices_to_roll):
             side = d.roll()
@@ -79,12 +84,16 @@ class Player:
 
             if side == "brain":
                 self.player_state.current_score += 1
-                self.player_state.brains_rolled += 1
             elif side == "shot":
                 self.player_state.times_shot += 1
             elif side == "walk":
-                deck.add_dice(d)
-                self.player_state.walks_taken_last_roll += 1
+                self.walks.append(d)
+                if d.name == "green":
+                    self.player_state.n_green_walks += 1
+                elif d.name == "yellow":
+                    self.player_state.n_yellow_walks += 1
+                elif d.name == "red":
+                    self.player_state.n_red_walks += 1
 
         if self.player_state.times_shot >= 3:
             self.player_state.is_dead = True
@@ -96,21 +105,29 @@ class Player:
         return turn_result
             
 class PlayerState:
-    def __init__(self, turns_taken, current_score, times_shot, brains_rolled, 
-                       walks_taken_last_roll, is_dead):
+    def __init__(self, 
+                 turns_taken,
+                 current_score,
+                 times_shot,
+                 n_green_walks,
+                 n_yellow_walks,
+                 n_red_walks,
+                 is_dead):
                     self.turns_taken = turns_taken
                     self.current_score = current_score
                     self.times_shot = times_shot
-                    self.brains_rolled = brains_rolled
-                    self.walks_taken_last_roll = walks_taken_last_roll
+                    self.n_green_walks = n_green_walks
+                    self.n_yellow_walks = n_yellow_walks
+                    self.n_red_walks = n_red_walks
                     self.is_dead = is_dead
 
     def reset(self):
         self.turns_taken = 0
         self.current_score = 0
         self.times_shot = 0
-        self.walks_taken_last_roll = 0
-        self.brains_rolled = 0
+        self.n_green_walks = 0
+        self.n_yellow_walks = 0
+        self.n_red_walks = 0
         self.is_dead = False
 
 class PlayerTurnResult:
@@ -124,7 +141,6 @@ class PlayerTurnResult:
         self.player_id = player_id
         self.continue_turn = continue_turn
 
-                
 
 class GameState:
     def __init__(self,
@@ -204,7 +220,7 @@ def init_zombie_deck():
     return zombie_deck
 
 def init_player_state():
-    return PlayerState(0, 0, 0, 0, 0, False)
+    return PlayerState(0, 0, 0, 0, 0, 0, False)
 
 def init_game_state(players, game_state_id):
 

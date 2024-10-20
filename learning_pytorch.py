@@ -1,13 +1,18 @@
 
+import os
 import numpy as np
 import torch
 
 from zombie_dice import Player, init_player_state, init_game_state
 from pytorch_agent import PyTorchAgent
 
-from collections import deque
+from collections import deque 
 
 from tests import test_model
+
+if not "PYTORCH_MODEL_PATH" in os.environ:
+    print("Please set PYTORCH_MODEL_PATH, so the model can be saved")
+    raise Exception("PYTORCH_MODEL_PATH not found")
 
 
 def get_features(player, game_state):
@@ -15,9 +20,13 @@ def get_features(player, game_state):
     state = []
     state.append(s.current_score)
     state.append(s.times_shot)
-    state.append(s.brains_rolled)
-    state.append(s.walks_taken_last_roll)
+    # state.append(s.brains_rolled)
+    # state.append(s.walks_taken_last_roll)
     # state.append(s.is_dead)
+
+    state.append(s.n_green_walks)
+    state.append(s.n_yellow_walks)
+    state.append(s.n_red_walks)
 
     dices = game_state.zombie_deck.dices 
 
@@ -37,7 +46,7 @@ def get_features(player, game_state):
     if s.is_dead:
         reward = 0
     else:
-        reward = s.brains_rolled
+        reward = s.current_score
 
     return state, reward, s.is_dead
 
@@ -61,7 +70,8 @@ def learn(agent, n_episodes, maxlen_scores):
             action = agent.act(state)
             if action == 0:
                 done = True
-                new_state = player_a.player_state.brains_rolled
+                new_state = player_a.player_state.current_score
+
                 reward = new_state
             else:
                 player_a.take_turn(game_state.zombie_deck)
@@ -91,8 +101,8 @@ def learn(agent, n_episodes, maxlen_scores):
 
 if __name__ == "__main__":
 
-    pytorch_agent = PyTorchAgent(input_size=7, action_size=2)
+    pytorch_agent = PyTorchAgent(input_size=8, action_size=2)
 
     learn(agent=pytorch_agent, n_episodes=1000, maxlen_scores=100)
 
-    torch.save(pytorch_agent.model.state_dict(), "pytorch_model.pt")
+    torch.save(pytorch_agent.model.state_dict(), os.environ["PYTORCH_MODEL_PATH"])

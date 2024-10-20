@@ -1,4 +1,5 @@
 
+import os
 from collections import Counter
 import random as rn
 from keras.models import load_model
@@ -8,7 +9,7 @@ import torch
 from pytorch_agent import RNNRegressor
 
 from zombie_dice import Player, init_game_state, init_player_state
-from learning import get_features
+from learning_pytorch import get_features
 
 
 
@@ -20,8 +21,11 @@ class RandomAI:
 
 class Greedy:
 
+    def __init__(self, n_max_shots):
+        self.n_max_shots = n_max_shots
+
     def should_continue(self, player=None, game_state=None):
-        if player.player_state.times_shot >= 2:
+        if player.player_state.times_shot >= self.n_max_shots:
             return False
         else:
             return True
@@ -42,8 +46,8 @@ class RL_Simple:
 class RL_PyTorch:
 
     def __init__(self, model_path):
-        self.model = RNNRegressor(7, 2)
-        self.model.load_state_dict(torch.load("pytorch_model.pt"))
+        self.model = RNNRegressor(8, 2)
+        self.model.load_state_dict(torch.load(model_path))
         self.model.eval()
 
 
@@ -86,7 +90,9 @@ def one_match(ai_a, ai_b):
 if __name__ == "__main__":
 
     random_ai = RandomAI()
-    greedy_ai = Greedy()
+    greedy_ai_1 = Greedy(n_max_shots=1)
+    greedy_ai_2 = Greedy(n_max_shots=2)
+
     # rl_simple_ai_a = RL_Simple("experimental_model.h5")
     # rl_simple_ai_b = RL_Simple("my_model_1000_4_layer_eps_06_4.h5")
     # rl_simple_ai_a = RL_Simple("experimental_model_method_0_model4.h5")
@@ -98,14 +104,22 @@ if __name__ == "__main__":
 
     # it looks like 1000 is slightly better than 5000
 
-    pytorch_agent = RL_PyTorch("pytorch_model")
-    keras_agent = RL_Simple("experimental_model.h5")
+    pytorch_agent = RL_PyTorch(os.environ["PYTORCH_MODEL_PATH"])
+    # keras_agent = RL_Simple("experimental_model.h5")
 
     n_matches = 1000
 
-    match_result = [one_match(keras_agent, pytorch_agent) for _ in range(n_matches)]
+    match_result = [one_match(pytorch_agent, random_ai) for _ in range(n_matches)]
 
-    print(f"match stats: {Counter(match_result)}")
+    print(f"PyTorch AI vs Random: {Counter(match_result)}")
+
+    match_result = [one_match(pytorch_agent, greedy_ai_1) for _ in range(n_matches)]
+
+    print(f"PyTorch AI vs Greedy (max 1 shot): {Counter(match_result)}")
+
+    match_result = [one_match(pytorch_agent, greedy_ai_2) for _ in range(n_matches)]
+
+    print(f"PyTorch AI vs Greedy (max 2 shots): {Counter(match_result)}")
 
 
 
